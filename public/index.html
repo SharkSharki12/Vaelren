@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vaelrën — Traducteur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&family=Spectral:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #12141c;
+    --bg-panel: #191c27;
+    --bg-panel-2: #1f2330;
+    --line: #2c3040;
+    --ink: #e9e4d6;
+    --ink-dim: #a7a698;
+    --gold: #c6a15b;
+    --gold-dim: #8f7a4d;
+    --sky: #4f7d8c;
+    --sky-dim: #33505a;
+    --danger: #b8624f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 20% -10%, rgba(79,125,140,0.18), transparent 55%),
+      radial-gradient(ellipse at 90% 10%, rgba(198,161,91,0.10), transparent 45%),
+      var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px 60px;
+  }
+  .wrap{ max-width: 980px; margin: 0 auto; }
+
+  header{ margin-bottom: 34px; }
+  .eyebrow{
+    font-family:'Spectral', serif; font-style: italic;
+    color: var(--sky); font-size: 14px; letter-spacing: .02em;
+    margin: 0 0 6px;
+  }
+  h1{
+    font-family:'Cinzel', serif; font-weight:600;
+    font-size: clamp(28px, 4.4vw, 42px);
+    margin:0 0 10px; color: var(--ink);
+    letter-spacing: .01em;
+  }
+  header p{
+    max-width: 620px; color: var(--ink-dim); line-height:1.6;
+    font-size: 15px; margin: 0;
+  }
+
+  .card{
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 26px;
+  }
+
+  .lang-row{
+    display:flex; align-items:center; gap: 14px;
+    margin-bottom: 18px; flex-wrap: wrap;
+  }
+  .lang-select{
+    flex: 1 1 220px;
+  }
+  .lang-select label{
+    display:block; font-size:12px; color: var(--ink-dim);
+    margin-bottom:6px;
+  }
+  select{
+    width:100%; background: var(--bg-panel-2);
+    border:1px solid var(--line); color: var(--ink);
+    padding:10px 12px; border-radius:7px; font-size:15px;
+    font-family:'Inter',sans-serif;
+  }
+  .swap-btn{
+    align-self:flex-end;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--line);
+    color: var(--gold);
+    width:42px; height:42px; border-radius:7px;
+    font-size:18px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition: border-color .15s, transform .15s;
+  }
+  .swap-btn:hover{ border-color: var(--gold-dim); transform: rotate(180deg); }
+
+  .panes{ display:grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 760px){ .panes{ grid-template-columns: 1fr; } }
+
+  textarea{
+    width:100%; min-height:150px; resize: vertical;
+    background: var(--bg-panel-2); border:1px solid var(--line);
+    color: var(--ink); border-radius:7px; padding:14px;
+    font-size:16px; font-family:'Inter',sans-serif; line-height:1.5;
+  }
+  textarea:focus{ outline:none; border-color: var(--sky-dim); }
+
+  .pane-label{ font-size:12px; color: var(--ink-dim); margin-bottom:6px; }
+
+  .output-box{
+    min-height:150px; background: var(--bg-panel-2);
+    border:1px solid var(--line); border-radius:7px; padding:14px;
+    font-size:18px; line-height:1.6; font-family:'Spectral', serif;
+  }
+  .output-box .vael-word{ color: var(--gold); }
+  .output-box .unknown{ color: var(--danger); border-bottom: 1px dotted var(--danger); }
+
+  .actions{ display:flex; justify-content:flex-end; margin-top: 14px; }
+  button.primary{
+    background: linear-gradient(180deg, #d3b06c, var(--gold));
+    color:#1a1508; border:none; font-weight:600;
+    padding:11px 22px; border-radius:7px; cursor:pointer;
+    font-size:14px; font-family:'Inter',sans-serif;
+  }
+  button.primary:hover{ filter: brightness(1.06); }
+
+  .gloss{
+    margin-top:22px; padding-top:18px; border-top:1px solid var(--line);
+  }
+  .gloss-title{ font-size:12px; color: var(--ink-dim); margin-bottom:10px; }
+  .gloss-row{ display:flex; flex-wrap:wrap; gap:8px; }
+  .gloss-chip{
+    background: var(--bg-panel); border:1px solid var(--line);
+    border-radius:6px; padding:6px 10px; font-size:13px;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    min-width:56px;
+  }
+  .gloss-chip .src{ color: var(--ink-dim); font-size:11px; }
+  .gloss-chip .tgt{ color: var(--gold); font-family:'Spectral',serif; font-size:14px; }
+  .gloss-chip .tag{ color: var(--sky); font-size:10px; }
+  .gloss-chip.unk .tgt{ color: var(--danger); }
+
+  details{
+    margin-top: 28px; background: var(--bg-panel);
+    border:1px solid var(--line); border-radius:10px;
+  }
+  summary{
+    cursor:pointer; padding: 16px 22px; font-family:'Cinzel',serif;
+    font-size:16px; color: var(--ink); list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  summary::-webkit-details-marker{ display:none; }
+  summary:after{ content:'+'; color:var(--gold); font-size:20px; }
+  details[open] summary:after{ content:'–'; }
+  .ref-body{ padding: 4px 22px 22px; color: var(--ink-dim); font-size:14px; line-height:1.7; }
+  .ref-grid{ display:grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap:10px 20px; margin: 10px 0 18px; }
+  .ref-grid div{ display:flex; justify-content:space-between; gap:8px; border-bottom:1px dashed var(--line); padding-bottom:4px;}
+  .ref-grid span.v{ color: var(--gold); font-family:'Spectral',serif; }
+  h3.sub{ font-family:'Cinzel',serif; font-weight:600; font-size:14px; color: var(--ink); margin: 18px 0 6px; }
+
+  footer{ margin-top: 30px; color: var(--ink-dim); font-size:12.5px; line-height:1.7; max-width: 680px; }
+  footer a{ color: var(--sky); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Aer selen, mor ul enar.</p>
+    <h1>Traducteur Vaelrën</h1>
+    <p>Français, English et Español vers le Vaelrën — la langue des anciens royaumes — et inversement. Cet outil traduit mot à mot à partir du lexique et de la grammaire officielle de la langue : ordre des mots, particules de temps, cas grammaticaux et négation sont appliqués automatiquement, mais il ne remplace pas un vrai locuteur pour les phrases très complexes.</p>
+  </header>
+
+  <div class="card">
+    <div class="lang-row">
+      <div class="lang-select">
+        <label for="srcLang">Depuis</label>
+        <select id="srcLang">
+          <option value="fr" selected>Français</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="vael">Vaelrën</option>
+        </select>
+      </div>
+      <button class="swap-btn" id="swapBtn" title="Inverser">⇄</button>
+      <div class="lang-select">
+        <label for="tgtLang">Vers</label>
+        <select id="tgtLang">
+          <option value="vael" selected>Vaelrën</option>
+          <option value="fr">Français</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="panes">
+      <div>
+        <div class="pane-label" id="inLabel">Texte source</div>
+        <textarea id="inputText" placeholder="Écris ta phrase ici… ex : Je vois l'homme fort.">Je vois l'homme fort.</textarea>
+      </div>
+      <div>
+        <div class="pane-label" id="outLabel">Traduction</div>
+        <div class="output-box" id="outputBox">—</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="translateBtn">Traduire</button>
+    </div>
+
+    <div class="gloss" id="glossSection" style="display:none;">
+      <div class="gloss-title">Décomposition mot à mot</div>
+      <div class="gloss-row" id="glossRow"></div>
+    </div>
+  </div>
+
+  <details>
+    <summary>Aide-mémoire grammatical</summary>
+    <div class="ref-body">
+      <h3 class="sub">Pronoms</h3>
+      <div class="ref-grid" id="refPronouns"></div>
+
+      <h3 class="sub">Cas (suffixes sur les noms)</h3>
+      <div class="ref-grid" id="refCases"></div>
+
+      <h3 class="sub">Particules de temps / phrase</h3>
+      <div class="ref-grid" id="refParticles"></div>
+
+      <p style="margin-top:14px;">Ordre neutre : <strong>Sujet + Verbe + Objet</strong>. La négation <span class="v">ul</span> se place juste avant le groupe verbal. La question <span class="v">ae</span> se place en fin de phrase.</p>
+    </div>
+  </details>
+
+  <footer>
+    Outil de traduction fondé sur le lexique et les règles grammaticales fournies pour le Vaelrën (langue construite fictive). La traduction se fait mot à mot avec application des règles de base (pronoms, cas, particules de temps, négation, interrogation) ; les tournures idiomatiques ou les phrases très longues peuvent ne pas être rendues parfaitement — les mots inconnus du lexique apparaissent en rouge entre crochets.
+  </footer>
+</div>
+
+<script>
+/* =========================================================================
+   VAELRËN — LEXICON & GRAMMAR DATA
+   ========================================================================= */
+
+// Person order used everywhere: [na, ta, se/sa, nar, tar, ser]
+const PRONOUNS = [
+  { vael:'na',  fr:['je',"j'"], en:['i'], es:['yo'] },
+  { vael:'ta',  fr:['tu'], en:['you'], es:['tú','tu'] },
+  { vael:'se',  fr:['il'], en:['he'], es:['él','el'] },
+  { vael:'sa',  fr:['elle'], en:['she'], es:['ella'] },
+  { vael:'nar', fr:['nous'], en:['we'], es:['nosotros','nosotras'] },
+  { vael:'tar', fr:['vous'], en:['you','you all'], es:['vosotros','vosotras','ustedes'] },
+  { vael:'ser', fr:['ils','elles'], en:['they'], es:['ellos','ellas'] },
+];
+// person index for the 6-slot conjugation arrays (se and sa share slot 2)
+const PRONOUN_SLOT = { na:0, ta:1, se:2, sa:2, nar:3, tar:4, ser:5 };
+
+const POSSESSIVES = [
+  { vael:'nair',  fr:['mon','ma','mes'], en:['my'], es:['mi','mis'] },
+  { vael:'tair',  fr:['ton','ta','tes'], en:['your'], es:['tu','tus'] },
+  { vael:'seir',  fr:['son','sa','ses'], en:['his'], es:['su','sus'] },
+  { vael:'sair',  fr:[], en:['her'], es:[] },
+  { vael:'narir', fr:['notre','nos'], en:['our'], es:['nuestro','nuestra','nuestros','nuestras'] },
+  { vael:'tarir', fr:['votre','vos'], en:['your'], es:['vuestro','vuestra','su','sus'] },
+  { vael:'serir', fr:['leur','leurs'], en:['their'], es:['su','sus'] },
+];
+
+const DEMONSTRATIVES = [
+  { vael:'sha',         fr:['ceci'], en:['this'], es:['esto'] },
+  { vael:'shaor',       fr:['cela','ça'], en:['that'], es:['eso'] },
+  { vael:'shadar',      fr:['celui-ci'], en:['this one'], es:['éste','este'] },
+  { vael:'shadaror',    fr:['celui-là'], en:['that one'], es:['ése','ese'] },
+  { vael:'shadaren',    fr:['ceux-ci'], en:['these'], es:['éstos','estos'] },
+  { vael:'shadarenor',  fr:['ceux-là'], en:['those'], es:['ésos','esos'] },
+];
+
+const PREPOSITIONS = [
+  { vael:'en',    fr:['dans'], en:['in'], es:['en'] },
+  { vael:'or',    fr:['sur'], en:['on'], es:['sobre'] },
+  { vael:'ulor',  fr:['sous'], en:['under'], es:['bajo'] },
+  { vael:'ke',    fr:['avec'], en:['with'], es:['con'] },
+  { vael:'ulke',  fr:['sans'], en:['without'], es:['sin'] },
+  { vael:'na',    fr:['vers'], en:['towards','toward'], es:['hacia'] },
+  { vael:'oro',   fr:['depuis'], en:['since','from'], es:['desde'] },
+  { vael:'renar', fr:['avant'], en:['before'], es:['antes'] },
+  { vael:'renor', fr:['après'], en:['after'], es:['después'] },
+  { vael:'duren', fr:['entre'], en:['between'], es:['entre'] },
+];
+
+const CONJUNCTIONS = [
+  { vael:'e',      fr:['et'], en:['and'], es:['y'] },
+  { vael:'va',     fr:['ou'], en:['or'], es:['o'] },
+  { vael:'ma',     fr:['mais'], en:['but'], es:['pero'] },
+  { vael:'sha',    fr:['parce que'], en:['because'], es:['porque'] },
+  { vael:'dai',    fr:['donc'], en:['so','therefore'], es:['entonces'] },
+  { vael:'ei',     fr:['si'], en:['if'], es:['si'] },
+  { vael:'ren',    fr:['lorsque'], en:['when'], es:['cuando'] },
+  { vael:'maor',   fr:['cependant'], en:['however'], es:['sin embargo'] },
+  { vael:'kharen', fr:['pourtant'], en:['yet'], es:['aun así'] },
+];
+
+const QUESTION_WORDS = [
+  { vael:'ka',  fr:['qui'], en:['who'], es:['quién','quien'] },
+  { vael:'ma',  fr:['quoi'], en:['what'], es:['qué','que'] },
+  { vael:'tor', fr:['où'], en:['where'], es:['dónde','donde'] },
+  { vael:'ren', fr:['quand'], en:['when'], es:['cuándo','cuando'] },
+  { vael:'sha', fr:['pourquoi'], en:['why'], es:['por qué','porque'] },
+  { vael:'vel', fr:['comment'], en:['how'], es:['cómo','como'] },
+  { vael:'dai', fr:['combien'], en:['how much','how many'], es:['cuánto','cuánta'] },
+  { vael:'kai', fr:['lequel'], en:['which'], es:['cuál','cual'] },
+];
+
+const NUMBERS = [
+  { vael:'nul', fr:['zéro'], en:['zero'], es:['cero'] },
+  { vael:'an',  fr:['un','une'], en:['one'], es:['uno','una'] },
+  { vael:'du',  fr:['deux'], en:['two'], es:['dos'] },
+  { vael:'tri', fr:['trois'], en:['three'], es:['tres'] },
+  { vael:'kar', fr:['quatre'], en:['four'], es:['cuatro'] },
+  { vael:'ven', fr:['cinq'], en:['five'], es:['cinco'] },
+  { vael:'ses', fr:['six'], en:['six'], es:['seis'] },
+  { vael:'sev', fr:['sept'], en:['seven'], es:['siete'] },
+  { vael:'ok',  fr:['huit'], en:['eight'], es:['ocho'] },
+  { vael:'nav', fr:['neuf'], en:['nine'], es:['nueve'] },
+  { vael:'daran', fr:['onze'], en:['eleven'], es:['once'] },
+  { vael:'dardu', fr:['douze'], en:['twelve'], es:['doce'] },
+  { vael:'dudar', fr:['vingt'], en:['twenty'], es:['veinte'] },
+  { vael:'saran', fr:['cent'], en:['hundred'], es:['cien'] },
+  { vael:'aeran', fr:['mille'], en:['thousand'], es:['mil'] },
+  { vael:'thalar', fr:['million'], en:['million'], es:['millón'] },
+];
+
+const DAYS = [
+  { vael:'Solen', fr:['lundi'], en:['monday'], es:['lunes'] },
+  { vael:'Varen', fr:['mardi'], en:['tuesday'], es:['martes'] },
+  { vael:'Moren', fr:['mercredi'], en:['wednesday'], es:['miércoles'] },
+  { vael:'Thalen', fr:['jeudi'], en:['thursday'], es:['jueves'] },
+  { vael:'Selen', fr:['vendredi'], en:['friday'], es:['viernes'] },
+  { vael:'Doren', fr:['samedi'], en:['saturday'], es:['sábado'] },
+  { vael:'Aerën', fr:['dimanche'], en:['sunday'], es:['domingo'] },
+];
+
+// General vocabulary (nature, people, society, emotions, colors, time, adjectives)
+const VOCAB = [
+  // nature
+  {vael:'aer', fr:['ciel'], en:['sky'], es:['cielo']},
+  {vael:'sola', fr:['soleil'], en:['sun'], es:['sol']},
+  {vael:'luna', fr:['lune'], en:['moon'], es:['luna']},
+  {vael:'thira', fr:['étoile'], en:['star'], es:['estrella']},
+  {vael:'nel', fr:['nuage'], en:['cloud'], es:['nube']},
+  {vael:'ael', fr:['pluie'], en:['rain'], es:['lluvia']},
+  {vael:'syr', fr:['neige'], en:['snow'], es:['nieve']},
+  {vael:'sai', fr:['vent'], en:['wind'], es:['viento']},
+  {vael:'saithal', fr:['tempête'], en:['storm'], es:['tormenta']},
+  {vael:'mor', fr:['mer','obscurité','ténèbres'], en:['sea','darkness'], es:['mar','oscuridad']},
+  {vael:'thalmor', fr:['océan'], en:['ocean'], es:['océano']},
+  {vael:'ren', fr:['rivière','temps','route'], en:['river','time','road'], es:['río','tiempo','camino']},
+  {vael:'lora', fr:['lac'], en:['lake'], es:['lago']},
+  {vael:'ae', fr:['eau'], en:['water'], es:['agua']},
+  {vael:'var', fr:['feu','parole'], en:['fire','speech'], es:['fuego','palabra']},
+  {vael:'hesh', fr:['fumée','gris'], en:['smoke','gray'], es:['humo','gris']},
+  {vael:'dor', fr:['terre'], en:['earth','ground'], es:['tierra']},
+  {vael:'kar', fr:['pierre','quatre'], en:['stone','four'], es:['piedra','cuatro']},
+  {vael:'thal', fr:['montagne','grand','devoir'], en:['mountain','big','must'], es:['montaña','grande','deber']},
+  {vael:'elyn', fr:['forêt','vert'], en:['forest','green'], es:['bosque','verde']},
+  {vael:'el', fr:['arbre'], en:['tree'], es:['árbol']},
+  {vael:'ela', fr:['feuille','amour','aimer'], en:['leaf','love'], es:['hoja','amor']},
+  {vael:'sera', fr:['fleur'], en:['flower'], es:['flor']},
+  {vael:'lirath', fr:['herbe'], en:['grass'], es:['hierba']},
+  {vael:'aran', fr:['animal','chef'], en:['animal','chief','leader'], es:['animal','jefe']},
+  {vael:'aiv', fr:['oiseau'], en:['bird'], es:['pájaro']},
+  {vael:'khar', fr:['loup','ennemi'], en:['wolf','enemy'], es:['lobo','enemigo']},
+  {vael:'vaer', fr:['cheval'], en:['horse'], es:['caballo']},
+  {vael:'morin', fr:['poisson'], en:['fish'], es:['pez']},
+  // people
+  {vael:'dar', fr:['homme','dix'], en:['man','ten'], es:['hombre','diez']},
+  {vael:'sara', fr:['femme'], en:['woman'], es:['mujer']},
+  {vael:'lir', fr:['enfant'], en:['child'], es:['niño','niña']},
+  {vael:'nar', fr:['personne','nous'], en:['person','we'], es:['persona','nosotros']},
+  {vael:'ven', fr:['ami','cinq'], en:['friend','five'], es:['amigo','cinco']},
+  {vael:'aeron', fr:['roi'], en:['king'], es:['rey']},
+  {vael:'aerena', fr:['reine'], en:['queen'], es:['reina']},
+  {vael:'aerin', fr:['prince'], en:['prince'], es:['príncipe']},
+  {vael:'aerina', fr:['princesse'], en:['princess'], es:['princesa']},
+  {vael:'varkan', fr:['soldat'], en:['soldier'], es:['soldado']},
+  {vael:'drekar', fr:['guerrier'], en:['warrior'], es:['guerrero']},
+  {vael:'thaldar', fr:['général'], en:['general'], es:['general']},
+  {vael:'naren', fr:['peuple'], en:['people'], es:['pueblo']},
+  {vael:'toran', fr:['étranger'], en:['stranger','foreigner'], es:['extranjero']},
+  {vael:'velar', fr:['voyageur','allant'], en:['traveler'], es:['viajero']},
+  {vael:'dalar', fr:['marchand'], en:['merchant'], es:['comerciante']},
+  {vael:'dorar', fr:['fermier'], en:['farmer'], es:['agricultor']},
+  {vael:'morar', fr:['marin'], en:['sailor'], es:['marinero']},
+  // society
+  {vael:'aerdor', fr:['royaume'], en:['kingdom'], es:['reino']},
+  {vael:'varad', fr:['ville'], en:['city'], es:['ciudad']},
+  {vael:'lirdor', fr:['village'], en:['village'], es:['aldea']},
+  {vael:'dom', fr:['maison'], en:['house'], es:['casa']},
+  {vael:'aerdom', fr:['palais'], en:['palace'], es:['palacio']},
+  {vael:'selor', fr:['temple'], en:['temple'], es:['templo']},
+  {vael:'serad', fr:['école'], en:['school'], es:['escuela']},
+  {vael:'dalor', fr:['marché'], en:['market'], es:['mercado']},
+  {vael:'renkar', fr:['pont'], en:['bridge'], es:['puente']},
+  {vael:'thar', fr:['porte'], en:['door'], es:['puerta']},
+  {vael:'doren', fr:['mur'], en:['wall'], es:['muro']},
+  {vael:'aerthal', fr:['tour'], en:['tower'], es:['torre']},
+  {vael:'uldom', fr:['prison'], en:['prison'], es:['prisión']},
+  {vael:'varkanen', fr:['armée'], en:['army'], es:['ejército']},
+  {vael:'thara', fr:['loi'], en:['law'], es:['ley']},
+  {vael:'aeral', fr:['couronne','doré'], en:['crown','golden'], es:['corona','dorado']},
+  {vael:'vael', fr:['drapeau'], en:['flag'], es:['bandera']},
+  {vael:'drek', fr:['guerre','combattre'], en:['war'], es:['guerra']},
+  {vael:'sela', fr:['paix','blanc','bon'], en:['peace','white','good'], es:['paz','blanco','bueno']},
+  {vael:'selath', fr:['traité','éclairer'], en:['treaty'], es:['tratado']},
+  // emotions
+  {vael:'vena', fr:['amitié'], en:['friendship'], es:['amistad']},
+  {vael:'selen', fr:['joie','lumineux'], en:['joy','bright'], es:['alegría','luminoso']},
+  {vael:'moren', fr:['tristesse','sombre'], en:['sadness','dark'], es:['tristeza','oscuro']},
+  {vael:'ulva', fr:['peur','faible'], en:['fear','weak'], es:['miedo','débil']},
+  {vael:'khara', fr:['colère','mauvais'], en:['anger','bad'], es:['ira','malo']},
+  {vael:'vaela', fr:['courage','fort'], en:['courage','strong'], es:['valor','fuerte']},
+  {vael:'aerela', fr:['espoir'], en:['hope'], es:['esperanza']},
+  {vael:'kharela', fr:['haine'], en:['hatred'], es:['odio']},
+  {vael:'ulsela', fr:['honte'], en:['shame'], es:['vergüenza']},
+  {vael:'aervaela', fr:['fierté'], en:['pride'], es:['orgullo']},
+  {vael:'dulen', fr:['calme','lent'], en:['calm','slow'], es:['calma','lento']},
+  {vael:'kaen', fr:['désir'], en:['desire'], es:['deseo']},
+  // colors
+  {vael:'varan', fr:['rouge'], en:['red'], es:['rojo']},
+  {vael:'aeren', fr:['bleu'], en:['blue'], es:['azul']},
+  {vael:'solan', fr:['jaune'], en:['yellow'], es:['amarillo']},
+  {vael:'thiran', fr:['violet'], en:['purple'], es:['morado']},
+  {vael:'silen', fr:['argenté'], en:['silver'], es:['plateado']},
+  // time
+  {vael:'sol', fr:['jour'], en:['day'], es:['día']},
+  {vael:'morsol', fr:['nuit'], en:['night'], es:['noche']},
+  {vael:'solaer', fr:['matin'], en:['morning'], es:['mañana']},
+  {vael:'solor', fr:['soir'], en:['evening'], es:['tarde']},
+  {vael:'solna', fr:["aujourd'hui"], en:['today'], es:['hoy']},
+  {vael:'renva', fr:['demain'], en:['tomorrow'], es:['mañana (adv.)']},
+  {vael:'renra', fr:['hier'], en:['yesterday'], es:['ayer']},
+  {vael:'naren2', fr:['maintenant'], en:['now'], es:['ahora']},
+  {vael:'vela', fr:['bientôt','aller (inf.)'], en:['soon'], es:['pronto']},
+  {vael:'nulren', fr:['jamais'], en:['never'], es:['nunca']},
+  {vael:'aerren', fr:['toujours'], en:['always'], es:['siempre']},
+  // adjectives / misc
+  {vael:'aivar', fr:['rapide'], en:['fast'], es:['rápido']},
+  {vael:'min', fr:['petit'], en:['small'], es:['pequeño']},
+  {vael:'khar-ven', fr:['faux ami'], en:['false friend'], es:['falso amigo']},
+];
+
+// combine everything except pronouns/possessives/verbs into one lookup dictionary
+const DICTIONARY = [].concat(
+  DEMONSTRATIVES, PREPOSITIONS, CONJUNCTIONS, QUESTION_WORDS, NUMBERS, DAYS, VOCAB,
+  POSSESSIVES.filter(p=>p.vael!=='sair') // sair handled with seir group below manually too
+);
+
+// Fixed short phrases (checked before word-by-word translation)
+const PHRASES = [
+  { vael:'Sela.', fr:['bonjour'], en:['hello'], es:['hola'] },
+  { vael:'Sel.', fr:['salut'], en:['hi'], es:['hola (informal)'] },
+  { vael:'Sela ren.', fr:['au revoir'], en:['goodbye','bye'], es:['adiós'] },
+  { vael:'Dal na.', fr:['merci'], en:['thank you','thanks'], es:['gracias'] },
+  { vael:'Dal na thal.', fr:['merci beaucoup'], en:['thank you very much'], es:['muchas gracias'] },
+  { vael:'Ul-ma.', fr:['de rien'], en:["you're welcome"], es:['de nada'] },
+  { vael:'Ela ta.', fr:["s'il te plaît","s'il vous plaît"], en:['please'], es:['por favor'] },
+  { vael:'Sel na.', fr:['excuse-moi','pardon'], en:['excuse me','sorry'], es:['perdón','disculpa'] },
+  { vael:'Ae.', fr:['oui'], en:['yes'], es:['sí'] },
+  { vael:'Ul.', fr:['non'], en:['no'], es:['no'] },
+  { vael:'Ei-ma.', fr:['peut-être'], en:['maybe'], es:['quizás'] },
+];
+
+/* -------------------------------------------------------------------------
+   VERBS — irregular / core verbs.
+   Each conjugation array has 6 slots: [je/1sg, tu/2sg, il-elle/3sg, nous/1pl, vous/2pl, ils-elles/3pl]
+   ------------------------------------------------------------------------- */
+const VERBS = [
+  { root:'es',
+    fr:{ inf:'être', pres:['suis','es','est','sommes','êtes','sont'],
+         passe:['ai été','as été','a été','avons été','avez été','ont été'],
+         fut:['serai','seras','sera','serons','serez','seront'],
+         cond:['serais','serais','serait','serions','seriez','seraient'] },
+    en:{ inf:'be', pres:['am','are','is','are','are','are'],
+         passe:['was','were','was','were','were','were'],
+         fut:['will be','will be','will be','will be','will be','will be'],
+         cond:['would be','would be','would be','would be','would be','would be'] },
+    es:{ inf:'ser', pres:['soy','eres','es','somos','sois','son'],
+         passe:['fui','fuiste','fue','fuimos','fuisteis','fueron'],
+         fut:['seré','serás','será','seremos','seréis','serán'],
+         cond:['sería','serías','sería','seríamos','seríais','serían'] } },
+
+  { root:'an',
+    fr:{ inf:'avoir', pres:['ai','as','a','avons','avez','ont'],
+         passe:['ai eu','as eu','a eu','avons eu','avez eu','ont eu'],
+         fut:['aurai','auras','aura','aurons','aurez','auront'],
+         cond:['aurais','aurais','aurait','aurions','auriez','auraient'] },
+    en:{ inf:'have', pres:['have','have','has','have','have','have'],
+         passe:['had','had','had','had','had','had'],
+         fut:['will have','will have','will have','will have','will have','will have'],
+         cond:['would have','would have','would have','would have','would have','would have'] },
+    es:{ inf:'tener', pres:['tengo','tienes','tiene','tenemos','tenéis','tienen'],
+         passe:['tuve','tuviste','tuvo','tuvimos','tuvisteis','tuvieron'],
+         fut:['tendré','tendrás','tendrá','tendremos','tendréis','tendrán'],
+         cond:['tendría','tendrías','tendría','tendríamos','tendríais','tendrían'] } },
+
+  { root:'vel',
+    fr:{ inf:'aller', pres:['vais','vas','va','allons','allez','vont'],
+         passe:['suis allé','es allé','est allé','sommes allés','êtes allés','sont allés'],
+         fut:['irai','iras','ira','irons','irez','iront'],
+         cond:['irais','irais','irait','irions','iriez','iraient'] },
+    en:{ inf:'go', pres:['go','go','goes','go','go','go'],
+         passe:['went','went','went','went','went','went'],
+         fut:['will go','will go','will go','will go','will go','will go'],
+         cond:['would go','would go','would go','would go','would go','would go'] },
+    es:{ inf:'ir', pres:['voy','vas','va','vamos','vais','van'],
+         passe:['fui','fuiste','fue','fuimos','fuisteis','fueron'],
+         fut:['iré','irás','irá','iremos','iréis','irán'],
+         cond:['iría','irías','iría','iríamos','iríais','irían'] } },
+
+  { root:'len',
+    fr:{ inf:'venir', pres:['viens','viens','vient','venons','venez','viennent'],
+         passe:['suis venu','es venu','est venu','sommes venus','êtes venus','sont venus'],
+         fut:['viendrai','viendras','viendra','viendrons','viendrez','viendront'],
+         cond:['viendrais','viendrais','viendrait','viendrions','viendriez','viendraient'] },
+    en:{ inf:'come', pres:['come','come','comes','come','come','come'],
+         passe:['came','came','came','came','came','came'],
+         fut:['will come','will come','will come','will come','will come','will come'],
+         cond:['would come','would come','would come','would come','would come','would come'] },
+    es:{ inf:'venir', pres:['vengo','vienes','viene','venimos','venís','vienen'],
+         passe:['vine','viniste','vino','vinimos','vinisteis','vinieron'],
+         fut:['vendré','vendrás','vendrá','vendremos','vendréis','vendrán'],
+         cond:['vendría','vendrías','vendría','vendríamos','vendríais','vendrían'] } },
+
+  { root:'mir',
+    fr:{ inf:'voir', pres:['vois','vois','voit','voyons','voyez','voient'],
+         passe:['ai vu','as vu','a vu','avons vu','avez vu','ont vu'],
+         fut:['verrai','verras','verra','verrons','verrez','verront'],
+         cond:['verrais','verrais','verrait','verrions','verriez','verraient'] },
+    en:{ inf:'see', pres:['see','see','sees','see','see','see'],
+         passe:['saw','saw','saw','saw','saw','saw'],
+         fut:['will see','will see','will see','will see','will see','will see'],
+         cond:['would see','would see','would see','would see','would see','would see'] },
+    es:{ inf:'ver', pres:['veo','ves','ve','vemos','veis','ven'],
+         passe:['vi','viste','vio','vimos','visteis','vieron'],
+         fut:['veré','verás','verá','veremos','veréis','verán'],
+         cond:['vería','verías','vería','veríamos','veríais','verían'] } },
+
+  { root:'var',
+    fr:{ inf:'parler', pres:['parle','parles','parle','parlons','parlez','parlent'],
+         passe:['ai parlé','as parlé','a parlé','avons parlé','avez parlé','ont parlé'],
+         fut:['parlerai','parleras','parlera','parlerons','parlerez','parleront'],
+         cond:['parlerais','parlerais','parlerait','parlerions','parleriez','parleraient'] },
+    en:{ inf:'speak', pres:['speak','speak','speaks','speak','speak','speak'],
+         passe:['spoke','spoke','spoke','spoke','spoke','spoke'],
+         fut:['will speak','will speak','will speak','will speak','will speak','will speak'],
+         cond:['would speak','would speak','would speak','would speak','would speak','would speak'] },
+    es:{ inf:'hablar', pres:['hablo','hablas','habla','hablamos','habláis','hablan'],
+         passe:['hablé','hablaste','habló','hablamos','hablasteis','hablaron'],
+         fut:['hablaré','hablarás','hablará','hablaremos','hablaréis','hablarán'],
+         cond:['hablaría','hablarías','hablaría','hablaríamos','hablaríais','hablarían'] } },
+
+  { root:'ser',
+    fr:{ inf:'savoir', pres:['sais','sais','sait','savons','savez','savent'],
+         passe:['ai su','as su','a su','avons su','avez su','ont su'],
+         fut:['saurai','sauras','saura','saurons','saurez','sauront'],
+         cond:['saurais','saurais','saurait','saurions','sauriez','sauraient'] },
+    en:{ inf:'know', pres:['know','know','knows','know','know','know'],
+         passe:['knew','knew','knew','knew','knew','knew'],
+         fut:['will know','will know','will know','will know','will know','will know'],
+         cond:['would know','would know','would know','would know','would know','would know'] },
+    es:{ inf:'saber', pres:['sé','sabes','sabe','sabemos','sabéis','saben'],
+         passe:['supe','supiste','supo','supimos','supisteis','supieron'],
+         fut:['sabré','sabrás','sabrá','sabremos','sabréis','sabrán'],
+         cond:['sabría','sabrías','sabría','sabríamos','sabríais','sabrían'] } },
+
+  { root:'enar',
+    fr:{ inf:'vivre', pres:['vis','vis','vit','vivons','vivez','vivent'],
+         passe:['ai vécu','as vécu','a vécu','avons vécu','avez vécu','ont vécu'],
+         fut:['vivrai','vivras','vivra','vivrons','vivrez','vivront'],
+         cond:['vivrais','vivrais','vivrait','vivrions','vivriez','vivraient'] },
+    en:{ inf:'live', pres:['live','live','lives','live','live','live'],
+         passe:['lived','lived','lived','lived','lived','lived'],
+         fut:['will live','will live','will live','will live','will live','will live'],
+         cond:['would live','would live','would live','would live','would live','would live'] },
+    es:{ inf:'vivir', pres:['vivo','vives','vive','vivimos','vivís','viven'],
+         passe:['viví','viviste','vivió','vivimos','vivisteis','vivieron'],
+         fut:['viviré','vivirás','vivirá','viviremos','viviréis','vivirán'],
+         cond:['viviría','vivirías','viviría','viviríamos','viviríais','vivirían'] } },
+
+  { root:'dal',
+    fr:{ inf:'donner', pres:['donne','donnes','donne','donnons','donnez','donnent'],
+         passe:['ai donné','as donné','a donné','avons donné','avez donné','ont donné'],
+         fut:['donnerai','donneras','donnera','donnerons','donnerez','donneront'],
+         cond:['donnerais','donnerais','donnerait','donnerions','donneriez','donneraient'] },
+    en:{ inf:'give', pres:['give','give','gives','give','give','give'],
+         passe:['gave','gave','gave','gave','gave','gave'],
+         fut:['will give','will give','will give','will give','will give','will give'],
+         cond:['would give','would give','would give','would give','would give','would give'] },
+    es:{ inf:'dar', pres:['doy','das','da','damos','dais','dan'],
+         passe:['di','diste','dio','dimos','disteis','dieron'],
+         fut:['daré','darás','dará','daremos','daréis','darán'],
+         cond:['daría','darías','daría','daríamos','daríais','darían'] } },
+
+  { root:'drek',
+    fr:{ inf:'combattre', pres:['combats','combats','combat','combattons','combattez','combattent'],
+         passe:['ai combattu','as combattu','a combattu','avons combattu','avez combattu','ont combattu'],
+         fut:['combattrai','combattras','combattra','combattrons','combattrez','combattront'],
+         cond:['combattrais','combattrais','combattrait','combattrions','combattriez','combattraient'] },
+    en:{ inf:'fight', pres:['fight','fight','fights','fight','fight','fight'],
+         passe:['fought','fought','fought','fought','fought','fought'],
+         fut:['will fight','will fight','will fight','will fight','will fight','will fight'],
+         cond:['would fight','would fight','would fight','would fight','would fight','would fight'] },
+    es:{ inf:'luchar', pres:['lucho','luchas','lucha','luchamos','lucháis','luchan'],
+         passe:['luché','luchaste','luchó','luchamos','luchasteis','lucharon'],
+         fut:['lucharé','lucharás','luchará','lucharemos','lucharéis','lucharán'],
+         cond:['lucharía','lucharías','lucharía','lucharíamos','lucharíais','lucharían'] } },
+
+  { root:'kae',
+    fr:{ inf:'vouloir', pres:['veux','veux','veut','voulons','voulez','veulent'],
+         passe:['ai voulu','as voulu','a voulu','avons voulu','avez voulu','ont voulu'],
+         fut:['voudrai','voudras','voudra','voudrons','voudrez','voudront'],
+         cond:['voudrais','voudrais','voudrait','voudrions','voudriez','voudraient'] },
+    en:{ inf:'want', pres:['want','want','wants','want','want','want'],
+         passe:['wanted','wanted','wanted','wanted','wanted','wanted'],
+         fut:['will want','will want','will want','will want','will want','will want'],
+         cond:['would want','would want','would want','would want','would want','would want'] },
+    es:{ inf:'querer', pres:['quiero','quieres','quiere','queremos','queréis','quieren'],
+         passe:['quise','quisiste','quiso','quisimos','quisisteis','quisieron'],
+         fut:['querré','querrás','querrá','querremos','querréis','querrán'],
+         cond:['querría','querrías','querría','querríamos','querríais','querrían'] } },
+
+  { root:'sor',
+    fr:{ inf:'pouvoir', pres:['peux','peux','peut','pouvons','pouvez','peuvent'],
+         passe:['ai pu','as pu','a pu','avons pu','avez pu','ont pu'],
+         fut:['pourrai','pourras','pourra','pourrons','pourrez','pourront'],
+         cond:['pourrais','pourrais','pourrait','pourrions','pourriez','pourraient'] },
+    en:{ inf:'be able to', pres:['can','can','can','can','can','can'],
+         passe:['could','could','could','could','could','could'],
+         fut:['will be able to','will be able to','will be able to','will be able to','will be able to','will be able to'],
+         cond:['would be able to','would be able to','would be able to','would be able to','would be able to','would be able to'] },
+    es:{ inf:'poder', pres:['puedo','puedes','puede','podemos','podéis','pueden'],
+         passe:['pude','pudiste','pudo','pudimos','pudisteis','pudieron'],
+         fut:['podré','podrás','podrá','podremos','podréis','podrán'],
+         cond:['podría','podrías','podría','podríamos','podríais','podrían'] } },
+
+  { root:'thal',
+    fr:{ inf:'devoir', pres:['dois','dois','doit','devons','devez','doivent'],
+         passe:['ai dû','as dû','a dû','avons dû','avez dû','ont dû'],
+         fut:['devrai','devras','devra','devrons','devrez','devront'],
+         cond:['devrais','devrais','devrait','devrions','devriez','devraient'] },
+    en:{ inf:'have to', pres:['have to','have to','has to','have to','have to','have to'],
+         passe:['had to','had to','had to','had to','had to','had to'],
+         fut:['will have to','will have to','will have to','will have to','will have to','will have to'],
+         cond:['would have to','would have to','would have to','would have to','would have to','would have to'] },
+    es:{ inf:'deber', pres:['debo','debes','debe','debemos','debéis','deben'],
+         passe:['debí','debiste','debió','debimos','debisteis','debieron'],
+         fut:['deberé','deberás','deberá','deberemos','deberéis','deberán'],
+         cond:['debería','deberías','debería','deberíamos','deberíais','deberían'] } },
+
+  { root:'sul',
+    fr:{ inf:'dormir', pres:['dors','dors','dort','dormons','dormez','dorment'],
+         passe:['ai dormi','as dormi','a dormi','avons dormi','avez dormi','ont dormi'],
+         fut:['dormirai','dormiras','dormira','dormirons','dormirez','dormiront'],
+         cond:['dormirais','dormirais','dormirait','dormirions','dormiriez','dormiraient'] },
+    en:{ inf:'sleep', pres:['sleep','sleep','sleeps','sleep','sleep','sleep'],
+         passe:['slept','slept','slept','slept','slept','slept'],
+         fut:['will sleep','will sleep','will sleep','will sleep','will sleep','will sleep'],
+         cond:['would sleep','would sleep','would sleep','would sleep','would sleep','would sleep'] },
+    es:{ inf:'dormir', pres:['duermo','duermes','duerme','dormimos','dormís','duermen'],
+         passe:['dormí','dormiste','durmió','dormimos','dormisteis','durmieron'],
+         fut:['dormiré','dormirás','dormirá','dormiremos','dormiréis','dormirán'],
+         cond:['dormiría','dormirías','dormiría','dormiríamos','dormiríais','dormirían'] } },
+];
+
+const TENSE_PARTICLE = { passe:'ra', fut:'va', cond:'ei' }; // pres -> no particle
+
+/* =========================================================================
+   INDEX BUILDING
+   ========================================================================= */
+
+function norm(s){
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+
+// word -> {vael, tag} indexes per source language, for simple dictionary items
+const WORD_INDEX = { fr:new Map(), en:new Map(), es:new Map() };
+function indexList(list, tag){
+  list.forEach(entry=>{
+    ['fr','en','es'].forEach(lang=>{
+      (entry[lang]||[]).forEach(form=>{
+        WORD_INDEX[lang].set(norm(form), { vael: entry.vael, tag });
+      });
+    });
+  });
+}
+indexList(PRONOUNS, 'pronom');
+indexList(POSSESSIVES, 'possessif');
+indexList(DEMONSTRATIVES, 'démonstratif');
+indexList(PREPOSITIONS, 'préposition');
+indexList(CONJUNCTIONS, 'conjonction');
+indexList(QUESTION_WORDS, 'interrogatif');
+indexList(NUMBERS, 'nombre');
+indexList(DAYS, 'jour');
+indexList(VOCAB, 'mot');
+
+// phrase index (normalized, punctuation-stripped)
+function normPhrase(s){ return norm(s.replace(/[.!?]/g,'')); }
+const PHRASE_INDEX = { fr:new Map(), en:new Map(), es:new Map() };
+PHRASES.forEach(entry=>{
+  ['fr','en','es'].forEach(lang=>{
+    (entry[lang]||[]).forEach(form=>{
+      PHRASE_INDEX[lang].set(normPhrase(form), entry.vael);
+    });
+  });
+});
+const VAEL_PHRASE_INDEX = new Map(); // vael phrase (normalized) -> {fr,en,es}
+PHRASES.forEach(entry=>{
+  VAEL_PHRASE_INDEX.set(normPhrase(entry.vael), entry);
+});
+
+// verb form index: normalized conjugated form -> {root, tense}
+const VERB_FORM_INDEX = { fr:new Map(), en:new Map(), es:new Map() };
+const VERB_BY_ROOT = new Map();
+VERBS.forEach(v=>{
+  VERB_BY_ROOT.set(v.root, v);
+  ['fr','en','es'].forEach(lang=>{
+    const conj = v[lang];
+    VERB_FORM_INDEX[lang].set(norm(conj.inf), { root:v.root, tense:'inf' });
+    ['pres','passe','fut','cond'].forEach(tense=>{
+      conj[tense].forEach(form=>{
+        // don't overwrite an already-set more specific entry (rare collisions)
+        const key = norm(form);
+        if(!VERB_FORM_INDEX[lang].has(key)) VERB_FORM_INDEX[lang].set(key, { root:v.root, tense });
+      });
+    });
+  });
+});
+
+// reverse dictionary: vael root/word -> {fr,en,es} (first match wins per list precedence)
+const VAEL_INDEX = new Map();
+function indexVaelReverse(list){
+  list.forEach(entry=>{
+    if(!VAEL_INDEX.has(entry.vael)) VAEL_INDEX.set(entry.vael, entry);
+  });
+}
+indexVaelReverse(PRONOUNS);
+indexVaelReverse(POSSESSIVES);
+indexVaelReverse(DEMONSTRATIVES);
+indexVaelReverse(PREPOSITIONS);
+indexVaelReverse(CONJUNCTIONS);
+indexVaelReverse(QUESTION_WORDS);
+indexVaelReverse(NUMBERS);
+indexVaelReverse(DAYS);
+indexVaelReverse(VOCAB);
+const VAEL_ROOTS = new Set(VAEL_INDEX.keys());
+VERBS.forEach(v=> VAEL_ROOTS.add(v.root));
+
+const CASE_LABELS = {
+  ir:'génitif', an:'datif', or:'ablatif', ek:'instrumental',
+  en:'locatif/pluriel', i:'duel', m:'accusatif', a:'vocatif'
+};
+const SUFFIXES = ['enir','enan','enor','enek','ena','enm','ir','an','en','or','ek','i','m','a'];
+
+/* =========================================================================
+   PRE-PROCESSING HELPERS (contractions, negation markers)
+   ========================================================================= */
+
+function preprocess(text, lang){
+  let t = text;
+  if(lang === 'fr'){
+    t = t.replace(/\b(\w+)['’]/gi, '$1 '); // "n'ai" -> "n ai" won't match "ne"; handle j'/n' separately below
+    t = text.replace(/\bn['’]/gi, 'ne ').replace(/\bj['’]/gi, 'je ')
+             .replace(/\bl['’]/gi, 'le ').replace(/\bd['’]/gi, 'de ')
+             .replace(/\bqu['’]/gi, 'que ').replace(/\bs['’]/gi, 'se ');
+  } else if(lang === 'en'){
+    t = text.replace(/won['’]t/gi, 'will not')
+             .replace(/can['’]t/gi, 'can not')
+             .replace(/(\w+)n['’]t/gi, '$1 not');
+  } else {
+    t = text;
+  }
+  return t;
+}
+
+/* =========================================================================
+   TRANSLATE: SOURCE LANGUAGE -> VAELRËN
+   ========================================================================= */
+
+function tokenizeWords(text){
+  return text.match(/[A-Za-zÀ-ÿ'’]+|[?!.,]/g) || [];
+}
+
+function toVael(text, srcLang){
+  const rawTrim = text.trim();
+  if(!rawTrim) return { output:'', gloss:[] };
+
+  // exact phrase match
+  const phraseKey = normPhrase(rawTrim);
+  if(PHRASE_INDEX[srcLang].has(phraseKey)){
+    const vaelPhrase = PHRASE_INDEX[srcLang].get(phraseKey);
+    return { output: vaelPhrase, gloss:[{src:rawTrim, tgt:vaelPhrase, tag:'expression'}] };
+  }
+
+  const pre = preprocess(rawTrim, srcLang);
+  let tokens = tokenizeWords(pre);
+
+  // question?
+  let isQuestion = false;
+  if(tokens.length && tokens[tokens.length-1] === '?'){ isQuestion = true; tokens.pop(); }
+  tokens = tokens.filter(t=> !['.', '!', ','].includes(t));
+
+  // negation detection
+  let negation = false;
+  if(srcLang === 'fr'){
+    const iNe = tokens.findIndex(t=> norm(t)==='ne');
+    const iPas = tokens.findIndex(t=> norm(t)==='pas');
+    if(iNe !== -1 && iPas !== -1){ negation = true; tokens.splice(iPas,1); tokens.splice(iNe,1); }
+  } else if(srcLang === 'en'){
+    const iNot = tokens.findIndex(t=> norm(t)==='not');
+    if(iNot !== -1){ negation = true; tokens.splice(iNot,1); }
+  } else if(srcLang === 'es'){
+    const iNo = tokens.findIndex(t=> norm(t)==='no');
+    if(iNo !== -1){ negation = true; tokens.splice(iNo,1); }
+  }
+
+  const gloss = [];
+  const outWords = [];
+  let subjectSeen = false;
+  let lastWasModal = false;
+
+  tokens.forEach((word, idx)=>{
+    const n = norm(word);
+    if(n === '' ) return;
+    // skip common articles that Vaelrën doesn't use
+    const ARTICLES = { fr:['le','la','les','un','une','des','l'], en:['the','a','an'], es:['el','la','los','las','un','una'] };
+    if(ARTICLES[srcLang] && ARTICLES[srcLang].includes(n)){
+      gloss.push({src:word, tgt:'(article — absent en Vaelrën)', tag:'—', unk:false});
+      return;
+    }
+
+    // verb form?
+    if(VERB_FORM_INDEX[srcLang].has(n)){
+      const {root, tense} = VERB_FORM_INDEX[srcLang].get(n);
+      let vaelForm;
+      if(tense === 'inf'){
+        vaelForm = lastWasModal ? root + 'a' : root + 'a';
+      } else if(tense === 'pres'){
+        vaelForm = root;
+      } else {
+        vaelForm = TENSE_PARTICLE[tense] + ' ' + root;
+      }
+      // insert negation right before the first verb group encountered
+      if(negation){
+        outWords.push('ul');
+        gloss.push({src:'(nég.)', tgt:'ul', tag:'négation'});
+        negation = false;
+      }
+      outWords.push(vaelForm);
+      gloss.push({src:word, tgt:vaelForm, tag: tense==='inf'?'infinitif':(tense==='pres'?'verbe (présent)':'verbe ('+tense+')')});
+      lastWasModal = (root==='kae' || root==='sor' || root==='thal');
+      return;
+    }
+
+    lastWasModal = false;
+
+    if(WORD_INDEX[srcLang].has(n)){
+      const {vael, tag} = WORD_INDEX[srcLang].get(n);
+      if(tag === 'pronom' && !subjectSeen){
+        subjectSeen = true;
+        outWords.push(vael);
+        gloss.push({src:word, tgt:vael, tag});
+        if(negation){
+          outWords.push('ul');
+          gloss.push({src:'(nég.)', tgt:'ul', tag:'négation'});
+          negation = false;
+        }
+        return;
+      }
+      outWords.push(vael);
+      gloss.push({src:word, tgt:vael, tag});
+      return;
+    }
+
+    // try stripping simple plural 's'
+    if(n.endsWith('s') && WORD_INDEX[srcLang].has(n.slice(0,-1))){
+      const {vael, tag} = WORD_INDEX[srcLang].get(n.slice(0,-1));
+      const plural = vael + 'en';
+      outWords.push(plural);
+      gloss.push({src:word, tgt:plural, tag:tag+' (pluriel)'});
+      return;
+    }
+
+    // unknown
+    outWords.push('['+word+']');
+    gloss.push({src:word, tgt:'['+word+']', tag:'inconnu', unk:true});
+  });
+
+  if(negation){ // negation word found but no verb matched — put at front
+    outWords.unshift('ul');
+    gloss.unshift({src:'(nég.)', tgt:'ul', tag:'négation'});
+  }
+  if(isQuestion){
+    outWords.push('ae');
+    gloss.push({src:'?', tgt:'ae', tag:'interrogatif'});
+  }
+
+  let sentence = outWords.join(' ').trim();
+  if(sentence.length){
+    sentence = sentence.charAt(0).toUpperCase() + sentence.slice(1);
+    sentence += isQuestion ? ' ?' : '.';
+  }
+  return { output: sentence, gloss };
+}
+
+/* =========================================================================
+   TRANSLATE: VAELRËN -> TARGET LANGUAGE
+   ========================================================================= */
+
+function fromVael(text, tgtLang){
+  const rawTrim = text.trim();
+  if(!rawTrim) return { output:'', gloss:[] };
+
+  const phraseKey = normPhrase(rawTrim);
+  if(VAEL_PHRASE_INDEX.has(phraseKey)){
+    const entry = VAEL_PHRASE_INDEX.get(phraseKey);
+    const tgt = (entry[tgtLang] && entry[tgtLang][0]) || '?';
+    return { output: tgt, gloss:[{src:rawTrim, tgt, tag:'expression'}] };
+  }
+
+  let tokens = rawTrim.replace(/[.!]/g,'').split(/\s+/).filter(Boolean);
+  let isQuestion = false;
+  if(tokens.length && tokens[tokens.length-1].replace('?','') === 'ae'){
+    isQuestion = true;
+    tokens.pop();
+  } else if(tokens.length && tokens[tokens.length-1].endsWith('?')){
+    isQuestion = true;
+    tokens[tokens.length-1] = tokens[tokens.length-1].replace('?','');
+  }
+  tokens = tokens.map(t=>t.replace(/[?.,]/g,'')).filter(Boolean);
+
+  let negation = false;
+  const negIdx = tokens.findIndex(t=> t.toLowerCase()==='ul');
+  if(negIdx !== -1){ negation = true; tokens.splice(negIdx,1); }
+
+  const gloss = [];
+  const outWords = [];
+  let lastPronounSlot = 2; // default to 3rd person singular if unknown
+  let lastModalRoot = null;
+
+  for(let i=0;i<tokens.length;i++){
+    const word = tokens[i];
+    const low = word.toLowerCase();
+
+    // pronoun?
+    const pronounEntry = PRONOUNS.find(p=>p.vael===low);
+    if(pronounEntry){
+      lastPronounSlot = PRONOUN_SLOT[low];
+      const tgt = (pronounEntry[tgtLang] && pronounEntry[tgtLang][0]) || low;
+      outWords.push(tgt);
+      gloss.push({src:word, tgt, tag:'pronom'});
+      continue;
+    }
+
+    // tense particle followed by verb root?
+    const tenseFromParticle = { ra:'passe', va:'fut', ei:'cond' }[low];
+    if(tenseFromParticle && i+1 < tokens.length && VERB_BY_ROOT.has(tokens[i+1].toLowerCase())){
+      const root = tokens[i+1].toLowerCase();
+      const verb = VERB_BY_ROOT.get(root);
+      const form = verb[tgtLang][tenseFromParticle][lastPronounSlot];
+      outWords.push(form);
+      gloss.push({src: word+' '+tokens[i+1], tgt:form, tag:'verbe ('+tenseFromParticle+')'});
+      if(root==='kae'||root==='sor'||root==='thal') lastModalRoot = root;
+      i++; // consume next token
+      continue;
+    }
+
+    // bare verb root -> present, or root+'a' -> infinitive
+    if(VERB_BY_ROOT.has(low)){
+      const verb = VERB_BY_ROOT.get(low);
+      const form = verb[tgtLang].pres[lastPronounSlot];
+      outWords.push(form);
+      gloss.push({src:word, tgt:form, tag:'verbe (présent)'});
+      if(low==='kae'||low==='sor'||low==='thal') lastModalRoot = low;
+      continue;
+    }
+    if(low.endsWith('a') && VERB_BY_ROOT.has(low.slice(0,-1))){
+      const verb = VERB_BY_ROOT.get(low.slice(0,-1));
+      const form = verb[tgtLang].inf;
+      outWords.push(form);
+      gloss.push({src:word, tgt:form, tag:'infinitif'});
+      continue;
+    }
+
+    // known short word (dictionary root)?
+    if(VAEL_INDEX.has(low)){
+      const entry = VAEL_INDEX.get(low);
+      const tgt = (entry[tgtLang] && entry[tgtLang][0]) || low;
+      outWords.push(tgt);
+      gloss.push({src:word, tgt, tag:'mot'});
+      continue;
+    }
+
+    // try suffix stripping (case / number)
+    let matched = false;
+    for(const suf of SUFFIXES){
+      if(low.length > suf.length + 1 && low.endsWith(suf)){
+        const root = low.slice(0, low.length - suf.length);
+        if(VAEL_INDEX.has(root)){
+          const entry = VAEL_INDEX.get(root);
+          const base = (entry[tgtLang] && entry[tgtLang][0]) || root;
+          const label = CASE_LABELS[suf.replace(/^en/,'')] || CASE_LABELS[suf] || 'cas';
+          const isPluralCompound = suf.startsWith('en') && suf.length>2;
+          const tgt = isPluralCompound ? base + 's (' + (CASE_LABELS[suf.slice(2)]||'cas') + ')' : (suf==='en' ? base+'s/lieu' : base);
+          outWords.push(tgt);
+          gloss.push({src:word, tgt, tag: isPluralCompound? 'pluriel + '+(CASE_LABELS[suf.slice(2)]||'cas') : (CASE_LABELS[suf]||'cas')});
+          matched = true;
+          break;
+        }
+      }
+    }
+    if(matched) continue;
+
+    outWords.push('['+word+']');
+    gloss.push({src:word, tgt:'['+word+']', tag:'inconnu', unk:true});
+  }
+
+  if(negation){
+    const negWord = { fr:'ne...pas', en:'not', es:'no' }[tgtLang];
+    // naive insertion: place right after first pronoun/verb-ish token, else at start
+    outWords.splice(Math.min(1,outWords.length), 0, negWord);
+    gloss.push({src:'ul', tgt:negWord, tag:'négation'});
+  }
+
+  let sentence = outWords.join(' ').trim();
+  if(sentence.length){
+    sentence = sentence.charAt(0).toUpperCase() + sentence.slice(1);
+    sentence += isQuestion ? ' ?' : '.';
+  }
+  return { output: sentence, gloss };
+}
+
+/* =========================================================================
+   UI WIRING
+   ========================================================================= */
+
+const srcSel = document.getElementById('srcLang');
+const tgtSel = document.getElementById('tgtLang');
+const inputText = document.getElementById('inputText');
+const outputBox = document.getElementById('outputBox');
+const glossSection = document.getElementById('glossSection');
+const glossRow = document.getElementById('glossRow');
+const inLabel = document.getElementById('inLabel');
+const outLabel = document.getElementById('outLabel');
+
+const LANG_NAMES = { fr:'Français', en:'English', es:'Español', vael:'Vaelrën' };
+
+function updateLabels(){
+  inLabel.textContent = 'Texte source (' + LANG_NAMES[srcSel.value] + ')';
+  outLabel.textContent = 'Traduction (' + LANG_NAMES[tgtSel.value] + ')';
+}
+
+function renderGloss(gloss){
+  if(!gloss.length){ glossSection.style.display='none'; return; }
+  glossSection.style.display='block';
+  glossRow.innerHTML = '';
+  gloss.forEach(g=>{
+    const chip = document.createElement('div');
+    chip.className = 'gloss-chip' + (g.unk ? ' unk' : '');
+    chip.innerHTML = '<span class="src">'+escapeHtml(g.src)+'</span><span class="tgt">'+escapeHtml(g.tgt)+'</span><span class="tag">'+escapeHtml(g.tag)+'</span>';
+    glossRow.appendChild(chip);
+  });
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function runTranslate(){
+  const src = srcSel.value, tgt = tgtSel.value;
+  const text = inputText.value;
+  let result;
+  if(src === tgt){
+    result = { output:text, gloss:[] };
+  } else if(tgt === 'vael'){
+    result = toVael(text, src);
+  } else if(src === 'vael'){
+    result = fromVael(text, tgt);
+  } else {
+    // fr <-> en <-> es direct (not vael): go through Vaelrën as a naive bridge is overkill;
+    // just do a light pass: dictionary word substitution isn't meaningful here, so inform the user.
+    result = { output: '(Ce traducteur est spécialisé pour le Vaelrën. Choisis Vaelrën comme langue source ou cible.)', gloss:[] };
+  }
+  outputBox.innerHTML = result.output
+    ? escapeHtml(result.output)
+    : '<span style="color:var(--ink-dim)">—</span>';
+  renderGloss(result.gloss);
+}
+
+document.getElementById('translateBtn').addEventListener('click', runTranslate);
+inputText.addEventListener('keydown', e=>{ if(e.key==='Enter' && (e.ctrlKey||e.metaKey)) runTranslate(); });
+srcSel.addEventListener('change', ()=>{ updateLabels(); runTranslate(); });
+tgtSel.addEventListener('change', ()=>{ updateLabels(); runTranslate(); });
+document.getElementById('swapBtn').addEventListener('click', ()=>{
+  const s = srcSel.value, t = tgtSel.value;
+  srcSel.value = t; tgtSel.value = s;
+  updateLabels();
+  runTranslate();
+});
+
+updateLabels();
+runTranslate();
+
+/* =========================================================================
+   REFERENCE PANEL
+   ========================================================================= */
+function fillRefGrid(id, rows){
+  const el = document.getElementById(id);
+  el.innerHTML = rows.map(r=>'<div><span>'+r[0]+'</span><span class="v">'+r[1]+'</span></div>').join('');
+}
+fillRefGrid('refPronouns', [
+  ['je / I / yo','na'],['tu / you / tú','ta'],['il / he / él','se'],['elle / she / ella','sa'],
+  ['nous / we / nosotros','nar'],['vous / you / vosotros','tar'],['ils-elles / they / ellos','ser']
+]);
+fillRefGrid('refCases', [
+  ['nominatif (sujet)','—'],['accusatif (objet)','-m'],['génitif (possession)','-ir'],
+  ['datif (destinataire)','-an'],['locatif (lieu)','-en'],['ablatif (origine)','-or'],
+  ['instrumental (moyen)','-ek'],['vocatif (interpellation)','-a'],
+  ['duel (×2)','-i'],['pluriel','-en']
+]);
+fillRefGrid('refParticles', [
+  ['passé','ra'],['futur','va'],['conditionnel','ei'],['en cours (progressif)','el'],
+  ['habituel','sa'],['négation','ul'],['interrogation (fin de phrase)','ae'],['infinitif (suffixe)','-a']
+]);
+</script>
+</body>
+</html>
